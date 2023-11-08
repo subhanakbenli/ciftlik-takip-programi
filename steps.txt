@@ -1,0 +1,11 @@
+1-) Hayvanların yoklamasını ve sağlık durumunu takip etme problemi tespit edildi
+2-) Bu problemin bir program ile qr hayvaların kulağına yerleştirilecek qr kodlar ile takip edilerek çözmeye karar verildi
+3-) Bu işlem için python dilini kullanarak görselden qr kod okuma sistemi ve hayvana özel qr oluşturma sistemi için taslak oluşturuldu
+4-) PyQt5 ile taslak bir arayüz oluşturarak fonksiyonların yazılmasına hazırlık yapıldı
+5-) qr kod okuyacak ve oluştaracak fonksiyonlar yazıldı 
+6-) her  hayvan için oluşturulan qr kodda bulunan benzersiz idler hayvanlara özel sayfa açmakta kullanıldı
+7-) hayvanlara özel ekstra bilgilerin girilebilmesi için düzenleme yapıldı
+8-) hayvanları listelerdken belli filtreleme sistemleri için arayüze chechkbox eklendi
+9-) hayvanların çiftlikte olup olmama durumunu arayüzdeki renkler ile anlatmak için düzenlemeler yapıldı
+10-) program işleyişindeki hatalar tespit edilip giderildi
+11-) program son kullanıcıya hazır hale getirildi
