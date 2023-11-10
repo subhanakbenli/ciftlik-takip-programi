@@ -81,6 +81,7 @@ def hayvanListele(icerde=True,disarda=True,erkek=True,disi=True):
     tabloDoldur(data,icerde,disarda,erkek,disi)
 
 def tabloDoldur(data,icerde,disarda,erkek,disi):
+    anaSayfa_ui.tableWidget.clearContents()
     list1=[]
     list2=[]
     if icerde:
@@ -116,6 +117,8 @@ def hayvanEkle_Ac():
 
 anaSayfa_ui.hayvanEkle_pushButton.clicked.connect(lambda : hayvanEkle_Ac())
 anaSayfa_ui.butunHayvanlariListele_pushButton.clicked.connect(lambda :
+    hayvanListele())
+anaSayfa_ui.uygunHayvanListele_pushButton.clicked.connect(lambda :
     hayvanListele(
         anaSayfa_ui.icerde_checkBox.isChecked(),
         anaSayfa_ui.disarida_checkBox.isChecked(),
