@@ -811,7 +811,7 @@ Hayvanları Listele</string>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <widget class="QPushButton" name="QrOkut_pushButton">
+             <widget class="QPushButton" name="QrOkut_giris">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -833,10 +833,40 @@ Hayvanları Listele</string>
                </font>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color:rgb(145, 196, 65)</string>
+               <string notr="true">background-color:rgb(45, 246, 65)</string>
               </property>
               <property name="text">
-               <string>QR OKUT</string>
+               <string>Giriş</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="QrOkut_cikis">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Times New Roman</family>
+                <pointsize>11</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:rgb(245, 66, 45)</string>
+              </property>
+              <property name="text">
+               <string>Çıkış</string>
               </property>
              </widget>
             </item>

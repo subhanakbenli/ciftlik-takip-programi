@@ -3,8 +3,11 @@ from PyQt5.QtWidgets import *
 import sys
 import sqlite3
 import datetime
-
+import numpy as np
 from AnaSayfa_ui import *
+import cv2
+from pyzbar.pyzbar import decode
+
 uygulama = QApplication(sys.argv)
 anaSayfa_main_window = QMainWindow()
 anaSayfa_ui = Ui_Anasayfa_MainWindow()
@@ -58,6 +61,50 @@ def Qr_oku(image_path):
         # Barkodu ve türünü ekrana yazdırın
         # print(f'Tür: {barcode_type}, Barkod: {barcode_data}')
     return None
+
+
+def Qr_oku_video(konum):
+    # Kamera başlatma
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        # Kameradan bir kareyi al
+        ret, frame = cap.read()
+
+        # QR kodları tespit et
+        decoded_objects = decode(frame)
+
+        # Her bir QR kodunu işle
+        for obj in decoded_objects:
+            # QR kodunun içeriğini al
+            qr_data = obj.data.decode('utf-8')
+
+            # QR kodunun konumunu çiz
+            points = obj.polygon
+            if len(points) == 4:
+                points = [(point.x, point.y) for point in points]  # Köşe noktalarını çiftler halinde al
+
+                # Köşe noktalarını birleştirip çizgi çiz
+                points = np.array(points, dtype=int)
+                cv2.polylines(frame, [points], isClosed=True, color=(0, 255, 0), thickness=4)
+
+            # QR kodu ekrana yazdır
+            cv2.putText(frame, qr_data, (obj.rect.left, obj.rect.top - 10),
+                        cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+
+            print(f"QR Kodu: {qr_data}")
+            curs.execute("UPDATE hayvanlar SET konum = ? WHERE kimlikNo = ?", (konum, qr_data))
+            conn.commit()
+        # Kameradan alınan kareyi göster
+        cv2.imshow('QR Kod Okuyucu', frame)
+
+        # Çıkış için 'q' tuşuna basın
+        if cv2.waitKey(1) & 0xFF == ord('q'):            break
+
+    # Kamera kapatma
+    cap.release()
+    cv2.destroyAllWindows()
+    
 
 def hayvanEkle():
     cins=hayvanEkle_ui.cins_lineEdit.text()
@@ -116,6 +163,8 @@ def hayvanEkle_Ac():
 
 
 anaSayfa_ui.hayvanEkle_pushButton.clicked.connect(lambda : hayvanEkle_Ac())
+anaSayfa_ui.QrOkut_giris.clicked.connect(lambda :   Qr_oku_video("İçeride") )
+anaSayfa_ui.QrOkut_cikis.clicked.connect(lambda :   Qr_oku_video("Dışarıda") )
 anaSayfa_ui.butunHayvanlariListele_pushButton.clicked.connect(lambda :
     hayvanListele())
 anaSayfa_ui.uygunHayvanListele_pushButton.clicked.connect(lambda :
