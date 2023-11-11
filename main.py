@@ -1,36 +1,47 @@
-# # kütüphaneler 
+# Kütüphaneleri içe aktar
 from PyQt5.QtWidgets import *
 import sys
 import sqlite3
-import datetime
 import numpy as np
-from AnaSayfa_ui import *
 import cv2
 from pyzbar.pyzbar import decode
+import os
 
+# PyQt uygulamasını başlat
 uygulama = QApplication(sys.argv)
+
+# AnaSayfa penceresini oluştur
 anaSayfa_main_window = QMainWindow()
+
+# AnaSayfa tasarımını içe aktar ve pencereyi ayarla
+from ui_design.AnaSayfa_ui import *
 anaSayfa_ui = Ui_Anasayfa_MainWindow()
 anaSayfa_ui.setupUi(anaSayfa_main_window)
 anaSayfa_main_window.show()
 
-from hayvanEkle_ui import *
+# HayvanEkle penceresini oluştur
+from ui_design.hayvanEkle_ui import *
 hayvanEkle_main_window = QMainWindow()
-hayvanEkle_ui =  Ui_hayvanEkle_MainWindow()
+hayvanEkle_ui = Ui_hayvanEkle_MainWindow()
 hayvanEkle_ui.setupUi(hayvanEkle_main_window)
 
-from hayvanBilgisi_ui import *
+# HayvanBilgisi penceresini oluştur
+from ui_design.hayvanBilgisi_ui import *
 hayvanBilgisi_main_window = QMainWindow()
-hayvanBilgisi_ui =  Ui_hayvanBilgisi_MainWindow()
+hayvanBilgisi_ui = Ui_hayvanBilgisi_MainWindow()
 hayvanBilgisi_ui.setupUi(hayvanBilgisi_main_window)
 
-conn=sqlite3.connect("database.db")
-curs=conn.cursor()
+# SQLite veritabanı bağlantısını oluştur
+conn = sqlite3.connect("database.db")
+curs = conn.cursor()
+
+# Hayvanlar tablosunu oluştur (eğer yoksa)
 curs.execute("CREATE TABLE IF NOT EXISTS hayvanlar(kimlikNo INTEGER PRIMARY KEY AUTOINCREMENT,cins Text,cinsiyet Text,dogumTarihi Date,agirlik Float,saglikDurumu Text,ekstraBilgiler Text,konum Text)")
 
 
 # QR kod oluşturacak fonksiyon
-def Qr_olustur(data):
+def Qr_olustur():
+    data=hayvanBilgisi_main_window.windowTitle()
     import qrcode 
      # Barkodu oluştur
     qr = qrcode.QRCode(
@@ -46,9 +57,14 @@ def Qr_olustur(data):
     img = qr.make_image(fill_color="black", back_color="white")
 
     # Görüntüyü kaydet
+    try:
+        os.makedirs("QR")
+    except FileExistsError:
+        pass
     img.save(f"QR/{data}.png")  # veya "barkod.jpg" olarak kaydedebilirsiniz
+    hayvanBilgisi_ui.statusbar.showMessage(f"{data}- Qr oluşturuldu ",5000)
 
-# Qr okuma işlemi için bir fonksiyon
+# Dosyadan  Qr okuma işlemi için bir fonksiyon 
 def Qr_oku(image_path):
     import cv2
     from pyzbar.pyzbar import decode
@@ -67,7 +83,7 @@ def Qr_oku(image_path):
         # print(f'Tür: {barcode_type}, Barkod: {barcode_data}')
     return None
 
-
+# Kameradan  Qr okuma işlemi için bir fonksiyon 
 def Qr_oku_video(konum):
     # Kamera başlatma
     cap = cv2.VideoCapture(0)
@@ -112,110 +128,187 @@ def Qr_oku_video(konum):
     hayvanListele()
 
 def hayvanEkle():
-    cins=hayvanEkle_ui.cins_lineEdit.text()
-    cinsiyet=hayvanEkle_ui.cinsiyet_comboBox.currentText()
-    dogumtarihi=hayvanEkle_ui.dogumTarihi_dateEdit.date().toPyDate()
-    try:    agirlik=float(hayvanEkle_ui.agirlik_lineEdit.text())
-    except:
-        hayvanEkle_ui.statusbar.showMessage("!!Ağırlık bilgisi istenen \nformata dönüştürülemedi!! ")
+    # Kullanıcı arayüzünden giriş al
+    cins = hayvanEkle_ui.cins_lineEdit.text()
+    cinsiyet = hayvanEkle_ui.cinsiyet_comboBox.currentText()
+    dogumtarihi = hayvanEkle_ui.dogumTarihi_dateEdit.date().toPyDate()
+
+    try:
+        # Ağırlık bilgisini float'a dönüştür
+        agirlik = float(hayvanEkle_ui.agirlik_lineEdit.text())
+    except ValueError:
+        # Hata durumunda kullanıcıya bilgi ver ve fonksiyondan çık
+        hayvanEkle_ui.statusbar.showMessage("!! Ağırlık bilgisi istenen formata dönüştürülemedi !!")
         return ValueError 
+
+    # Ekstra bilgileri al
     ekstrabilgiler = hayvanEkle_ui.ekstraBilgiler_textEdit.toPlainText()
 
-    curs.execute("INSERT INTO hayvanlar (cins,cinsiyet,dogumTarihi,agirlik,saglikDurumu,ekstraBilgiler,konum) Values(?,?,?,?,?,?,?)",
-                (cins,cinsiyet,dogumtarihi,agirlik,hayvanEkle_ui.saglik_comboBox_2.currentText(),ekstrabilgiler,"İçeride"))
+    # Veritabanına hayvan bilgilerini ekle
+    curs.execute("INSERT INTO hayvanlar (cins, cinsiyet, dogumTarihi, agirlik, saglikDurumu, ekstraBilgiler, konum) Values (?, ?, ?, ?, ?, ?, ?)",
+                (cins, cinsiyet, dogumtarihi, agirlik, hayvanEkle_ui.saglik_comboBox_2.currentText(), ekstrabilgiler, "İçeride"))
+    
+    # Veritabanı değişikliklerini kaydet
     conn.commit()
+
+    # Kullanıcıya başarı mesajını göster
     hayvanEkle_ui.statusbar.showMessage("Çiftliğinize başarıyla kaydedildi.")
 
-def hayvanListele(icerde=True,disarda=True,erkek=True,disi=True):
-    
+
+def hayvanListele(icerde=True, disarda=True, erkek=True, disi=True):
+    # Veritabanından hayvanları seç
     curs.execute("SELECT kimlikNo,cins,cinsiyet,dogumTarihi,agirlik,saglikDurumu,ekstraBilgiler,konum FROM hayvanlar")
     data = curs.fetchall()
-    tabloDoldur(data,icerde,disarda,erkek,disi)
+    # Tabloyu doldur
+    tabloDoldur(data, icerde, disarda, erkek, disi)
 
 def kimlikleAra(kimlikNo):
-    curs.execute("SELECT kimlikNo,cins,cinsiyet,dogumTarihi,agirlik,saglikDurumu,ekstraBilgiler,konum FROM hayvanlar Where kimlikNo = ?",(kimlikNo,))
+    # Veritabanından belirli bir kimlik numarasına sahip hayvanı seç
+    curs.execute("SELECT kimlikNo,cins,cinsiyet,dogumTarihi,agirlik,saglikDurumu,ekstraBilgiler,konum FROM hayvanlar WHERE kimlikNo = ?", (kimlikNo,))
     data = curs.fetchall()
+    # Tabloyu doldur
     tabloDoldur(data)
-       
- 
-def tabloDoldur(data,icerde=True,disarda=True,erkek=True,disi=True):
+
+def tabloDoldur(data, icerde=True, disarda=True, erkek=True, disi=True):
+    # Tabloyu temizle
     anaSayfa_ui.tableWidget.clearContents()
-    list1=[]
-    list2=[]
+    
+    list1 = []
+    list2 = []
+    
+    # İçeride ve dışarıda seçeneklerini listeye ekle
     if icerde:
         list1.append("İçeride")
     if disarda:
         list1.append("Dışarıda")
+    
+    # Erkek ve dişi seçeneklerini listeye ekle
     if erkek:
         list2.append("Erkek")
-    if disi:    
+    if disi:
         list2.append("Dişi")
-    counter=0
-    for kimlikNo,cins,cinsiyet,dogumTarihi,agirlik,saglikDurumu,ekstraBilgiler,konum in data:
+    
+    counter = 0
+    
+    for kimlikNo, cins, cinsiyet, dogumTarihi, agirlik, saglikDurumu, ekstraBilgiler, konum in data:
+        # Belirtilen konum ve cinsiyet seçeneklerine göre filtrele
         if (konum in list1) and (cinsiyet in list2):
-                
-            counter+=1
+            counter += 1
             anaSayfa_ui.tableWidget.setRowCount(counter)
-            anaSayfa_ui.tableWidget.setItem(counter-1,0,QTableWidgetItem(str(kimlikNo)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,1,QTableWidgetItem(str(cins)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,2,QTableWidgetItem(str(cinsiyet)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,3,QTableWidgetItem(str(dogumTarihi)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,4,QTableWidgetItem(str(agirlik)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,5,QTableWidgetItem(str(saglikDurumu)))
-            anaSayfa_ui.tableWidget.setItem(counter-1,6,QTableWidgetItem(str(konum)))
             
-            if konum=="İçeride":
-                tablo_row_renklendir(anaSayfa_ui.tableWidget,counter-1,QtGui.QColor(25, 240, 60))
-            if konum=="Dışarıda":
-                tablo_row_renklendir(anaSayfa_ui.tableWidget,counter-1,QtGui.QColor(240, 20, 60))              
+            # Tabloya verileri ekle
+            anaSayfa_ui.tableWidget.setItem(counter-1, 0, QTableWidgetItem(str(kimlikNo)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 1, QTableWidgetItem(str(cins)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 2, QTableWidgetItem(str(cinsiyet)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 3, QTableWidgetItem(str(dogumTarihi)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 4, QTableWidgetItem(str(agirlik)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 5, QTableWidgetItem(str(saglikDurumu)))
+            anaSayfa_ui.tableWidget.setItem(counter-1, 6, QTableWidgetItem(str(konum)))
+            
+            # Sil butonu oluştur ve kırmızı renk uygula
+            delete_button = QPushButton("Sil")
+            delete_button.clicked.connect(lambda: hayvanSil())
+            delete_button.setStyleSheet("background-color: red;")
+            anaSayfa_ui.tableWidget.setCellWidget(counter-1, 7, delete_button)
 
-def tablo_row_renklendir(tablo,row,color):
+            # İçerideki ve dışarıdaki hayvanları farklı renklerde göster
+            if konum == "İçeride":
+                tablo_row_renklendir(anaSayfa_ui.tableWidget, counter-1, QtGui.QColor(25, 240, 60))
+            elif konum == "Dışarıda":
+                tablo_row_renklendir(anaSayfa_ui.tableWidget, counter-1, QtGui.QColor(240, 20, 60))
+
+def tablo_row_renklendir(tablo, row, color):
+    # Belirtilen satır ve renge göre tablo satırını renklendir
     for col in range(tablo.columnCount()+1):
         item = tablo.item(row, col)
         if item:
-            item.setBackground(color)    
-        
+            item.setBackground(color)
+
+def hayvanSil():
+    try:
+        # Gönderen butonu belirle
+        sender_button = anaSayfa_main_window.sender()
+        if sender_button:
+            # Gönderen butonun konumunu al
+            index = anaSayfa_ui.tableWidget.indexAt(sender_button.pos())
+            if index.isValid():
+                # Konum geçerliyse, satırı al
+                row = index.row()
+                kimlikNo = anaSayfa_ui.tableWidget.item(row, 0).text()
+
+                # Veritabanından hayvanı sil
+                curs.execute("DELETE FROM hayvanlar WHERE kimlikNo = ?", (kimlikNo,))
+                conn.commit()
+
+                # Silme işlemi başarılı mesajı
+                anaSayfa_ui.statusbar.showMessage(f"{kimlikNo} başarıyla silindi", 5000)
+                # Hayvan listesini güncelle
+                hayvanListele()
+
+    except:
+        # Hata durumunda mesaj göster
+        anaSayfa_ui.statusbar.showMessage("! Masa Silme İşleminde hata oluştu !", 5000)
 
 def hayvanEkle_Ac():
+    # Hayvan ekle penceresini aç
     hayvanEkle_main_window.show()
 
 def bilgiGuncelle():
-    kimlikNo=hayvanBilgisi_main_window.windowTitle()
-    yeni_ekstra = hayvanBilgisi_ui.ekstraBilgiler_textEdit.toPlainText() 
-    curs.execute("UPDATE hayvanlar SET ekstraBilgiler = ? WHERE kimlikNo = ?", (yeni_ekstra,kimlikNo))
+    # Bilgileri güncelle
+    kimlikNo = hayvanBilgisi_main_window.windowTitle()
+    yeni_ekstra = hayvanBilgisi_ui.ekstraBilgiler_textEdit.toPlainText()
+    curs.execute("UPDATE hayvanlar SET ekstraBilgiler = ? WHERE kimlikNo = ?", (yeni_ekstra, kimlikNo))
     conn.commit()
-    
+
 def bilgiGetir():
+    # Bilgileri getir
     hayvanBilgisi_main_window.show()
     sender_combo = anaSayfa_main_window.sender()
     if sender_combo:
         try:
+            # Seçili satırdaki kimlik numarasını al
             kimlikNo = anaSayfa_ui.tableWidget.selectedItems()[0].text()
         except:
             kimlikNo = -1
         hayvanBilgisi_main_window.setWindowTitle(str(kimlikNo))
         curs.execute("SELECT ekstraBilgiler FROM hayvanlar WHERE kimlikNo = ?", (kimlikNo,))
-        data=curs.fetchone()
+        data = curs.fetchone()
         for i in data:
-                hayvanBilgisi_ui.ekstraBilgiler_textEdit.setText(i)
-                
-hayvanBilgisi_ui.ekstraBilgiler_textEdit.textChanged.connect(lambda : bilgiGuncelle())
+            hayvanBilgisi_ui.ekstraBilgiler_textEdit.setText(i)
 
-anaSayfa_ui.tableWidget.doubleClicked.connect(lambda : bilgiGetir())
-anaSayfa_ui.kimlikNoAra_pushButton.clicked.connect(lambda : kimlikleAra(anaSayfa_ui.kimlikNo_lineEdit.text()))
-anaSayfa_ui.hayvanEkle_pushButton.clicked.connect(lambda : hayvanEkle_Ac())
-anaSayfa_ui.QrOkut_giris.clicked.connect(lambda :   Qr_oku_video("İçeride") )
-anaSayfa_ui.QrOkut_cikis.clicked.connect(lambda :   Qr_oku_video("Dışarıda") )
-anaSayfa_ui.butunHayvanlariListele_pushButton.clicked.connect(lambda :
-    hayvanListele())
-anaSayfa_ui.uygunHayvanListele_pushButton.clicked.connect(lambda :
+# Ekstra bilgilerin değiştiğinde güncelleme işlemini tetikleyen bağlantı
+hayvanBilgisi_ui.ekstraBilgiler_textEdit.textChanged.connect(lambda: bilgiGuncelle())
+
+# QR kod oluşturma işlemini tetikleyen bağlantı
+hayvanBilgisi_ui.QROlustur_pushButton.clicked.connect(lambda: Qr_olustur())
+
+# Tablodaki bir hücreye çift tıklanıldığında bilgi getirme işlemini tetikleyen bağlantı
+anaSayfa_ui.tableWidget.doubleClicked.connect(lambda: bilgiGetir())
+
+# Kimlik numarasına göre arama işlemini tetikleyen bağlantı
+anaSayfa_ui.kimlikNoAra_pushButton.clicked.connect(lambda: kimlikleAra(anaSayfa_ui.kimlikNo_lineEdit.text()))
+
+# Yeni hayvan ekleme penceresini açma işlemini tetikleyen bağlantı
+anaSayfa_ui.hayvanEkle_pushButton.clicked.connect(lambda: hayvanEkle_Ac())
+
+# İçeri veya dışarı QR kodunu taratma işlemini tetikleyen bağlantılar
+anaSayfa_ui.QrOkut_giris.clicked.connect(lambda: Qr_oku_video("İçeride"))
+anaSayfa_ui.QrOkut_cikis.clicked.connect(lambda: Qr_oku_video("Dışarıda"))
+
+# Tüm hayvanları listeleme işlemini tetikleyen bağlantı
+anaSayfa_ui.butunHayvanlariListele_pushButton.clicked.connect(lambda: hayvanListele())
+
+# Belirli koşullara göre uygun hayvanları listeleme işlemini tetikleyen bağlantı
+anaSayfa_ui.uygunHayvanListele_pushButton.clicked.connect(lambda:
     hayvanListele(
         anaSayfa_ui.icerde_checkBox.isChecked(),
         anaSayfa_ui.disarida_checkBox.isChecked(),
         anaSayfa_ui.erkek_checkBox.isChecked(),
         anaSayfa_ui.disi_checkBox.isChecked()
     ))
-hayvanEkle_ui.hayvanEkle_pushButton.clicked.connect(lambda : hayvanEkle())
+
+# Yeni hayvan ekleme işlemini tetikleyen bağlantı
+hayvanEkle_ui.hayvanEkle_pushButton.clicked.connect(lambda: hayvanEkle())
 
 sys.exit(uygulama.exec_())
 

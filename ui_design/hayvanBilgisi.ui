@@ -535,6 +535,23 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
       </property>
      </widget>
     </item>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="QROlustur_pushButton">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(90, 111, 255);</string>
+      </property>
+      <property name="text">
+       <string>QR Oluştur</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">

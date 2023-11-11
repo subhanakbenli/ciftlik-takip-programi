@@ -622,34 +622,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              </item>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_3">
-             <property name="font">
-              <font>
-               <family>Times New Roman</family>
-               <pointsize>11</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Doğum Tarihi:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QDateEdit" name="dogumTarihi_dateEdit">
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="buttonSymbols">
-              <enum>QAbstractSpinBox::NoButtons</enum>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_6">
              <property name="font">
@@ -696,6 +668,29 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              </property>
             </widget>
            </item>
+           <item row="4" column="1">
+            <widget class="QComboBox" name="saglik_comboBox_2">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <italic>true</italic>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <item>
+              <property name="text">
+               <string>Sağlıklı</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Hasta</string>
+              </property>
+             </item>
+            </widget>
+           </item>
            <item row="5" column="0">
             <widget class="QLabel" name="label_7">
              <property name="font">
@@ -725,32 +720,41 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              <property name="maximumSize">
               <size>
                <width>999999</width>
-               <height>100</height>
+               <height>180</height>
               </size>
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <widget class="QComboBox" name="saglik_comboBox_2">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_9">
              <property name="font">
               <font>
+               <family>Times New Roman</family>
                <pointsize>11</pointsize>
-               <italic>true</italic>
+               <weight>75</weight>
+               <bold>true</bold>
               </font>
              </property>
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
+             <property name="text">
+              <string>Doğum Tarihi:</string>
              </property>
-             <item>
-              <property name="text">
-               <string>Sağlıklı</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Hasta</string>
-              </property>
-             </item>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDateEdit" name="dogumTarihi_dateEdit">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
             </widget>
            </item>
           </layout>
