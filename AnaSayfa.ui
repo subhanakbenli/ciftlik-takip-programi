@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1109</width>
-    <height>605</height>
+    <width>1201</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -755,7 +755,7 @@ Hayvanları Listele</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="rzvNo_lineEdit">
+                 <widget class="QLineEdit" name="kimlikNo_lineEdit">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -1019,6 +1019,11 @@ Hayvanları Listele</string>
              <string>Konum</string>
             </property>
            </column>
+           <column>
+            <property name="text">
+             <string>Sil</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
@@ -1033,7 +1038,7 @@ Hayvanları Listele</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1109</width>
+     <width>1201</width>
      <height>25</height>
     </rect>
    </property>
