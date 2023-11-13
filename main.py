@@ -38,6 +38,9 @@ curs = conn.cursor()
 # Hayvanlar tablosunu oluştur (eğer yoksa)
 curs.execute("CREATE TABLE IF NOT EXISTS hayvanlar(kimlikNo INTEGER PRIMARY KEY AUTOINCREMENT,cins Text,cinsiyet Text,dogumTarihi Date,agirlik Float,saglikDurumu Text,ekstraBilgiler Text,konum Text)")
 
+class CustomComboBox(QComboBox):
+    def wheelEvent(self, event):
+        event.ignore()
 
 # QR kod oluşturacak fonksiyon
 def Qr_olustur():
@@ -202,7 +205,19 @@ def tabloDoldur(data, icerde=True, disarda=True, erkek=True, disi=True):
             anaSayfa_ui.tableWidget.setItem(counter-1, 2, QTableWidgetItem(str(cinsiyet)))
             anaSayfa_ui.tableWidget.setItem(counter-1, 3, QTableWidgetItem(str(dogumTarihi)))
             anaSayfa_ui.tableWidget.setItem(counter-1, 4, QTableWidgetItem(str(agirlik)))
-            anaSayfa_ui.tableWidget.setItem(counter-1, 5, QTableWidgetItem(str(saglikDurumu)))
+
+            combo_box = CustomComboBox()
+            combo_box.addItems(["Sağlıklı","Hasta"])
+            combo_box.setCurrentText(saglikDurumu)
+            anaSayfa_ui.tableWidget.setCellWidget(counter-1, 5, combo_box)
+
+            if saglikDurumu=="Sağlıklı":
+                combo_box.setStyleSheet("background-color: rgb(200,150,185);")
+            else:
+                combo_box.setStyleSheet("background-color: red;")
+            
+            combo_box.currentTextChanged.connect(lambda : saglikGuncelle())
+
             anaSayfa_ui.tableWidget.setItem(counter-1, 6, QTableWidgetItem(str(konum)))
             
             # Sil butonu oluştur ve kırmızı renk uygula
@@ -259,7 +274,30 @@ def bilgiGuncelle():
     yeni_ekstra = hayvanBilgisi_ui.ekstraBilgiler_textEdit.toPlainText()
     curs.execute("UPDATE hayvanlar SET ekstraBilgiler = ? WHERE kimlikNo = ?", (yeni_ekstra, kimlikNo))
     conn.commit()
+    
+def saglikGuncelle():
+    try:
+        # Gönderen butonu belirle
+        sender_button = anaSayfa_main_window.sender()
+        if sender_button:
+            # Gönderen butonun konumunu al
+            index = anaSayfa_ui.tableWidget.indexAt(sender_button.pos())
+            if index.isValid():
+                # Konum geçerliyse, satırı al
+                row = index.row()
+                kimlikNo = anaSayfa_ui.tableWidget.item(row, 0).text()
+                saglikDurumu =sender_button.currentText()
 
+                curs.execute("UPDATE hayvanlar SET saglikDurumu = ? WHERE kimlikNo = ?", (saglikDurumu, kimlikNo))
+
+                conn.commit()
+
+                anaSayfa_ui.statusbar.showMessage(f"{kimlikNo} başarıyla güncellendi", 5000)
+                hayvanListele()
+
+    except:
+        # Hata durumunda mesaj göster
+        anaSayfa_ui.statusbar.showMessage("! Hayvan güncelleme işleminde bir hata oluştu !", 5000)
 def bilgiGetir():
     # Bilgileri getir
     hayvanBilgisi_main_window.show()
