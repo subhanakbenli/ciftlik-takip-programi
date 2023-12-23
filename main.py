@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 from pyzbar.pyzbar import decode
 import os
-
+import qrcode 
 # PyQt uygulamasını başlat
 uygulama = QApplication(sys.argv)
 
@@ -45,7 +45,6 @@ class CustomComboBox(QComboBox):
 # QR kod oluşturacak fonksiyon
 def Qr_olustur():
     data=hayvanBilgisi_main_window.windowTitle()
-    import qrcode 
      # Barkodu oluştur
     qr = qrcode.QRCode(
         version=1,
@@ -62,6 +61,7 @@ def Qr_olustur():
     # Görüntüyü kaydet
     try:
         os.makedirs("QR")
+    
     except FileExistsError:
         pass
     img.save(f"QR/{data}.png")  # veya "barkod.jpg" olarak kaydedebilirsiniz
@@ -69,8 +69,7 @@ def Qr_olustur():
 
 # Dosyadan  Qr okuma işlemi için bir fonksiyon 
 def Qr_oku(image_path):
-    import cv2
-    from pyzbar.pyzbar import decode
+    
     # Resmi yükle
     image = cv2.imread(image_path)
     
@@ -298,6 +297,7 @@ def saglikGuncelle():
     except:
         # Hata durumunda mesaj göster
         anaSayfa_ui.statusbar.showMessage("! Hayvan güncelleme işleminde bir hata oluştu !", 5000)
+
 def bilgiGetir():
     # Bilgileri getir
     hayvanBilgisi_main_window.show()
